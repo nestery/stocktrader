@@ -6,7 +6,6 @@ import router from "../../router";
 const state = {
   idToken: null,
   userId: null,
-
   loggedIn: false,
   loginFail: false,
   emailExists: false

@@ -1,4 +1,4 @@
-import { SET_STOCKS, RND_STOCKS } from "../mutypes";
+import { SET_STOCKS } from "../mutypes";
 import { stocksInstance } from "../../axios-stocks";
 
 const state = {
@@ -8,33 +8,26 @@ const state = {
 const mutations = {
   [SET_STOCKS](state, stocks) {
     state.stocks = stocks;
-  },
-  [RND_STOCKS]() {
-    state.stocks.forEach(stock => {
-      stock.price = stock.price * (Math.random() * (1.045 - 0.95) + 0.95);
-    });
   }
 };
 const actions = {
   buyStock({ commit }, order) {
     commit("BUY_STOCK", order);
   },
-  initStocks({ commit }) {
+  initStocks({ commit, dispatch }) {
     state.dataLoaded = false;
     stocksInstance
       .get()
       .then(res => {
-        return res.data;
+        if (res.data.length > 0) {
+          return res.data;
+        } else {
+          dispatch("initStocks");
+          throw new Error("Fetching failed, retrying...");
+        }
       })
       .then(data => {
-        let stocks = data.map(stock => {
-          return {
-            id: stock.Symbol,
-            name: stock.Name,
-            price: +stock.lastsale
-          };
-        });
-        return stocks;
+        return data;
       })
       .then(stocks => {
         commit("SET_STOCKS", stocks);
@@ -42,9 +35,6 @@ const actions = {
       .then(() => {
         state.dataLoaded = true;
       });
-  },
-  randomizeStocks({ commit }) {
-    commit("RND_STOCKS");
   }
 };
 const getters = {
